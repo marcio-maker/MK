@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Marcio Maker — Designer / AI Engineer</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- GSAP & Lenis -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@studio-freight/lenis@1.0.42/dist/lenis.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-primary: #ffffff;
+            --bg-secondary: #f8f8fa;
+            --bg-card: #ffffff;
+            --text-primary: #111111;
+            --text-secondary: #3a3a3a;
+            --text-tertiary: #6b6b6b;
+            --border-light: rgba(0,0,0,0.06);
+            --border-card: rgba(0,0,0,0.04);
+            --shadow-sm: 0 8px 20px rgba(0,0,0,0.02);
+            --shadow-md: 0 20px 35px -12px rgba(0,0,0,0.08);
+            --accent-1: #1a5cff;
+            --accent-2: #14b8a6;
+            --accent-subtle: rgba(26,92,255,0.08);
+            --radius-lg: 28px;
+            --transition: all 0.3s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+            --left-bg: #f5f5f7;
+            --left-text: #0a0a0a;
+            --right-bg: #0a0a0c;
+            --right-text: #e6edf3;
+        }
+
+        body.dark {
+            --bg-primary: #0a0a0c;
+            --bg-secondary: #101012;
+            --bg-card: #151518;
+            --text-primary: #ededf0;
+            --text-secondary: #a0a0a8;
+            --text-tertiary: #6e6e78;
+            --border-light: rgba(255,255,255,0.06);
+            --border-card: rgba(255,255,255,0.04);
+            --shadow-sm: 0 8px 20px rgba(0,0,0,0.3);
+            --shadow-md: 0 20px 35px -12px rgba(0,0,0,0.5);
+            --accent-1: #3b82f6;
+            --accent-2: #2dd4bf;
+            --accent-subtle: rgba(59,130,246,0.12);
+            --left-bg: #121214;
+            --left-text: #ededf0;
+            --right-bg: #050508;
+            --right-text: #e6edf3;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            transition: background 0.4s ease, color 0.3s ease;
+            overflow-x: hidden;
+        }
+
+        /* noise texture */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.02'/%3E%3C/svg%3E");
+            opacity: 0.3;
+            mix-blend-mode: multiply;
+            pointer-events: none;
+        }
+        body.dark::before { opacity: 0.12; mix-blend-mode: screen; }
+
+        .loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-primary);
+            z-index: 10000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.8s ease;
+        }
+        .loader-text {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            padding: 1.2rem 2rem;
+            transition: all 0.3s ease;
+            background: transparent;
+        }
+        nav.scrolled {
+            background: var(--bg-primary);
+            backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border-light);
+            padding: 0.8rem 2rem;
+        }
+        .nav-inner {
+            max-width: 1280px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .logo {
+            font-family: 'Syne', sans-serif;
+            font-size: 1.5rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--accent-1), var(--accent-2));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            align-items: center;
+        }
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-primary);
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: color 0.2s;
+            cursor: pointer;
+        }
+        .nav-links a:hover { color: var(--accent-1); }
+        .icon-btn {
+            background: transparent;
+            border: 1px solid var(--border-light);
+            padding: 0.4rem 0.9rem;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .mobile-menu {
+            display: none;
+            font-size: 1.3rem;
+            cursor: pointer;
+        }
+        @media (max-width: 850px) {
+            nav { padding: 1rem 1.5rem; }
+            .nav-links { display: none; position: absolute; top: 70px; right: 1rem; background: var(--bg-card); backdrop-filter: blur(20px); flex-direction: column; padding: 1.5rem; border-radius: 24px; gap: 1rem; width: 180px; border: 1px solid var(--border-light); }
+            .nav-links.show { display: flex; }
+            .mobile-menu { display: block; }
+        }
+
+        /* SPLIT SCREEN HERO - RESPONSIVO */
+        .split-hero {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .split-panel {
+            position: absolute;
+            top: 0;
+            width: 50%;
+            height: 100%;
+            overflow: hidden;
+            transition: width 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            z-index: 2;
+        }
+        .panel-left { left: 0; background: var(--left-bg); color: var(--left-text); }
+        .panel-right { right: 0; background: var(--right-bg); color: var(--right-text); }
+        .panel-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            text-align: center;
+            z-index: 10;
+            pointer-events: none;
+        }
+        .role-badge {
+            font-size: 0.7rem;
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            font-weight: 500;
+            margin-bottom: 1rem;
+            opacity: 0.7;
+        }
+        .main-title {
+            font-family: 'Syne', sans-serif;
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 800;
+            line-height: 1.1;
+            letter-spacing: -0.02em;
+            margin-bottom: 0.8rem;
+        }
+        .sub-text {
+            font-size: 0.85rem;
+            max-width: 260px;
+            margin: 0 auto;
+            opacity: 0.8;
+        }
+        .panel-right .sub-text { font-family: 'Space Mono', monospace; font-size: 0.8rem; }
+        .cta-mini {
+            margin-top: 1.5rem;
+            display: inline-block;
+            padding: 0.5rem 1.3rem;
+            border-radius: 40px;
+            background: transparent;
+            border: 1px solid currentColor;
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: 0.2s;
+            pointer-events: auto;
+        }
+        .cta-mini:hover { background: currentColor; color: var(--left-bg); transform: scale(1.02); }
+        .split-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+            z-index: 5;
+            opacity: 0.85;
+        }
+        .divider-line {
+            position: absolute;
+            left: 50%;
+            top: 0;
+            width: 2px;
+            height: 100%;
+            background: linear-gradient(to bottom, transparent, rgba(255,255,255,0.3), transparent);
+            transform: translateX(-50%);
+            z-index: 20;
+            pointer-events: none;
+            transition: left 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+        }
+        /* Responsivo: empilha verticalmente */
+        @media (max-width: 800px) {
+            .split-hero { height: auto; min-height: 100vh; display: flex; flex-direction: column; }
+            .split-panel { position: relative; width: 100% !important; height: 50vh; transition: none; }
+            .divider-line { display: none; }
+            .panel-content { width: 90%; }
+            .cta-mini { margin-top: 1rem; }
+        }
+
+        /* PÁGINAS INTERNAS */
+        .page { display: none; opacity: 0; transform: translateY(20px); transition: opacity 0.5s ease, transform 0.5s ease; }
+        .page.active { display: block; opacity: 1; transform: translateY(0); }
+        .inner-page {
+            min-height: 100vh;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            padding: 8rem 2rem 4rem;
+        }
+        .container-page { max-width: 1200px; margin: 0 auto; }
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 2rem;
+            margin-top: 3rem;
+        }
+        .project-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-card);
+            border-radius: var(--radius-lg);
+            padding: 1.8rem;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+        .project-card:hover { transform: translateY(-5px); box-shadow: var(--shadow-md); }
+        .btn-modal {
+            margin-top: 1rem;
+            background: var(--accent-1);
+            border: none;
+            padding: 0.5rem 1.2rem;
+            border-radius: 40px;
+            color: white;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: var(--transition);
+        }
+        .btn-modal:hover { background: var(--accent-2); transform: translateY(-2px); }
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.85);
+            backdrop-filter: blur(12px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+        }
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-container {
+            background: var(--bg-card);
+            max-width: 480px;
+            width: 90%;
+            padding: 2rem;
+            border-radius: 32px;
+            text-align: center;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+            border: 1px solid var(--border-light);
+        }
+        .modal-overlay.active .modal-container { transform: scale(1); }
+        .modal-container h3 { font-size: 1.6rem; margin-bottom: 1rem; color: var(--accent-1); }
+        .modal-container button {
+            margin-top: 1.5rem;
+            padding: 0.6rem 1.8rem;
+            border-radius: 40px;
+            background: var(--accent-1);
+            border: none;
+            color: white;
+            cursor: pointer;
+        }
+        footer {
+            text-align: center;
+            padding: 2rem;
+            font-size: 0.8rem;
+            border-top: 1px solid var(--border-light);
+            color: var(--text-tertiary);
+        }
+        .skill-badge { display: inline-block; background: var(--accent-subtle); padding: 0.3rem 1rem; border-radius: 40px; font-size: 0.75rem; margin: 0.2rem; }
+        .progress-bar { position: fixed; top: 0; left: 0; height: 2px; background: var(--accent-1); width: 0%; z-index: 1001; transition: width 0.1s; }
+        .social-links { display: flex; gap: 1.5rem; justify-content: center; margin-top: 2rem; }
+        .social-links a { color: var(--text-tertiary); font-size: 1.3rem; transition: var(--transition); }
+        .social-links a:hover { color: var(--accent-1); transform: translateY(-2px); }
+        @media (max-width: 640px) { .inner-page { padding: 6rem 1rem 3rem; } .card-grid { gap: 1rem; } }
+    </style>
+</head>
+<body>
+<div class="loader" id="loader"><div class="loader-text">MARCIO MAKER</div></div>
+<div class="progress-bar" id="progressBar"></div>
+
+<nav id="navbar">
+    <div class="nav-inner">
+        <div class="logo">MARCIO MAKER</div>
+        <div class="nav-links" id="navLinks">
+            <a data-page="home">HOME</a>
+            <a data-page="about">ABOUT</a>
+            <a data-page="portfolio">PORTFOLIO</a>
+            <a data-page="skills">SKILLS</a>
+            <a data-page="contact">CONTACT</a>
+            <div class="icon-btn" id="themeToggle"><i class="fas fa-moon"></i></div>
+            <div class="icon-btn" id="langToggle">EN</div>
+        </div>
+        <div class="mobile-menu" id="mobileMenu"><i class="fas fa-bars"></i></div>
+    </div>
+</nav>
+
+<!-- HOME - SPLIT SCREEN CINEMÁTICO -->
+<div id="home" class="page active">
+    <div class="split-hero" id="splitHero">
+        <div class="split-panel panel-left" id="panelLeft">
+            <img src="https://images.unsplash.com/photo-1581291518633-83b4ebd1d83e?w=1200&h=1600&fit=crop" alt="Creative Designer" class="split-image" loading="lazy">
+            <div class="panel-content">
+                <div class="role-badge" data-i18n="left_label">HUMAN · CREATIVITY</div>
+                <div class="main-title" data-i18n="left_title">Designer</div>
+                <div class="sub-text" data-i18n="left_desc">UI/UX, visual storytelling, brand experience.</div>
+                <div class="cta-mini" data-modal="designer" data-i18n="explore">Explore work →</div>
+            </div>
+        </div>
+        <div class="split-panel panel-right" id="panelRight">
+            <img src="https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=1200&h=1600&fit=crop" alt="AI Engineer" class="split-image" loading="lazy">
+            <div class="panel-content">
+                <div class="role-badge" data-i18n="right_label">AI · ENGINEERING</div>
+                <div class="main-title" data-i18n="right_title">&lt;AI Engineer/&gt;</div>
+                <div class="sub-text" data-i18n="right_desc">Generative systems, LLMs, creative code.</div>
+                <div class="cta-mini" data-modal="coder" data-i18n="view_projects">View projects →</div>
+            </div>
+        </div>
+        <div class="divider-line" id="dividerLine"></div>
+    </div>
+</div>
+
+<!-- ABOUT -->
+<div id="about" class="page">
+    <div class="inner-page">
+        <div class="container-page">
+            <h1 style="font-size: clamp(2rem, 5vw, 3rem);">Marcio Maker</h1>
+            <p style="max-width: 700px; margin-top: 1rem; font-size: 1.1rem;" data-i18n="about_text">Creative Technologist & AI Director — unindo design humanizado com engenharia de inteligência artificial. 8+ anos construindo experiências digitais premiadas globalmente.</p>
+            <div class="card-grid">
+                <div class="project-card"><h3>🎯 Filosofia</h3><p data-i18n="philosophy">Design com empatia, código com precisão. Tecnologia como extensão humana.</p></div>
+                <div class="project-card"><h3>⚙️ Stack</h3><p>React, GSAP, Three.js, OpenAI API, LangChain</p></div>
+                <div class="project-card"><h3>🏆 Reconhecimentos</h3><p>Awwwards, FWA, CSS Design Awards</p></div>
+            </div>
+            <div class="card-grid" style="margin-top: 2rem;">
+                <div class="project-card"><h3>📊 Impacto</h3><p><span id="projectCount" style="font-size:2rem;font-weight:700;">0</span>+ projetos<br><span id="clientCount" style="font-size:2rem;font-weight:700;">0</span>+ clientes globais</p></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- PORTFOLIO -->
+<div id="portfolio" class="page">
+    <div class="inner-page">
+        <div class="container-page">
+            <h1 style="font-size: clamp(2rem, 5vw, 3rem);" data-i18n="portfolio_title">Selected Work</h1>
+            <div class="card-grid" id="portfolioGrid"></div>
+        </div>
+    </div>
+</div>
+
+<!-- SKILLS -->
+<div id="skills" class="page">
+    <div class="inner-page">
+        <div class="container-page">
+            <h1 style="font-size: clamp(2rem, 5vw, 3rem);" data-i18n="skills_title">Expertise</h1>
+            <div class="card-grid">
+                <div class="project-card"><h3>Frontend</h3><div><span class="skill-badge">React/Next</span><span class="skill-badge">GSAP</span><span class="skill-badge">Three.js</span></div></div>
+                <div class="project-card"><h3>AI/ML</h3><div><span class="skill-badge">OpenAI API</span><span class="skill-badge">LangChain</span><span class="skill-badge">Vector DB</span></div></div>
+                <div class="project-card"><h3>Design</h3><div><span class="skill-badge">Figma</span><span class="skill-badge">Cinema 4D</span></div></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- CONTACT -->
+<div id="contact" class="page">
+    <div class="inner-page">
+        <div class="container-page">
+            <div style="max-width: 600px; margin: 0 auto;">
+                <h1 style="font-size: clamp(2rem, 5vw, 3rem);" data-i18n="contact_title">Collaborate</h1>
+                <p style="margin: 1rem 0;" data-i18n="contact_text">Vamos criar algo extraordinário juntos.</p>
+                <div class="project-card">
+                    <i class="fas fa-envelope" style="font-size: 2rem;"></i>
+                    <p style="margin: 1rem 0;">hello@marciomaker.com</p>
+                    <button class="btn-modal" id="copyEmailBtn" data-i18n="copy_email">Copiar e-mail</button>
+                </div>
+                <div class="social-links">
+                    <a href="#"><i class="fab fa-github"></i></a>
+                    <a href="#"><i class="fab fa-linkedin"></i></a>
+                    <a href="#"><i class="fab fa-instagram"></i></a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer>© 2025 MARCIO MAKER — Creative Technologist / AI Director</footer>
+
+<!-- MODAL -->
+<div id="globalModal" class="modal-overlay">
+    <div class="modal-container">
+        <h3 id="modalTitle">✨ Em breve</h3>
+        <p id="modalDesc">Este projeto está em desenvolvimento. Quer saber mais?</p>
+        <button id="closeModalBtn">Fechar</button>
+    </div>
+</div>
+
+<script>
+    // ======================= 1. SPLIT SCREEN HOVER =======================
+    const panelLeft = document.getElementById('panelLeft');
+    const panelRight = document.getElementById('panelRight');
+    const divider = document.getElementById('dividerLine');
+    const hero = document.getElementById('splitHero');
+    let targetWidth = 50, currentLeftWidth = 50, rafId = null;
+    function updateSplitWidth() {
+        if (panelLeft && panelRight) {
+            panelLeft.style.width = `${currentLeftWidth}%`;
+            panelRight.style.width = `${100 - currentLeftWidth}%`;
+            if (divider) divider.style.left = `${currentLeftWidth}%`;
+        }
+    }
+    function animateSplit() {
+        const diff = targetWidth - currentLeftWidth;
+        if (Math.abs(diff) < 0.05) { currentLeftWidth = targetWidth; updateSplitWidth(); rafId = null; return; }
+        currentLeftWidth += diff * 0.12;
+        updateSplitWidth();
+        rafId = requestAnimationFrame(animateSplit);
+    }
+    function setSplitPosition(clientX) {
+        if (!hero || window.innerWidth <= 800) return;
+        const rect = hero.getBoundingClientRect();
+        let x = clientX - rect.left;
+        x = Math.min(Math.max(x, 0), rect.width);
+        let percent = (x / rect.width) * 100;
+        percent = Math.min(Math.max(percent, 15), 85);
+        targetWidth = percent;
+        if (rafId === null) rafId = requestAnimationFrame(animateSplit);
+    }
+    if (hero && window.innerWidth > 800) {
+        hero.addEventListener('mousemove', (e) => setSplitPosition(e.clientX));
+        hero.addEventListener('mouseleave', () => { targetWidth = 50; if (rafId === null) rafId = requestAnimationFrame(animateSplit); });
+        targetWidth = 50; currentLeftWidth = 50; updateSplitWidth();
+    }
+
+    // ======================= 2. MULTILINGUAL (EN/PT/ES) =======================
+    const translations = {
+        en: { left_label: "HUMAN · CREATIVITY", left_title: "Designer", left_desc: "UI/UX, visual storytelling, brand experience.", right_label: "AI · ENGINEERING", right_title: "<AI Engineer/>", right_desc: "Generative systems, LLMs, creative code.", explore: "Explore work →", view_projects: "View projects →", about_text: "Creative Technologist & AI Director — merging human-centered design with AI engineering. 8+ years building award-winning digital experiences.", philosophy: "Design with empathy, code with precision. Technology as human extension.", portfolio_title: "Selected Work", skills_title: "Expertise", contact_title: "Collaborate", contact_text: "Let's create something extraordinary together.", copy_email: "Copy email" },
+        pt: { left_label: "HUMANO · CRIATIVIDADE", left_title: "Designer", left_desc: "UI/UX, storytelling visual, experiência de marca.", right_label: "IA · ENGENHARIA", right_title: "<Engenheiro IA/>", right_desc: "Sistemas generativos, LLMs, código criativo.", explore: "Explorar trabalho →", view_projects: "Ver projetos →", about_text: "Creative Technologist & Diretor de IA — unindo design humanizado com engenharia de IA. 8+ anos construindo experiências digitais premiadas.", philosophy: "Design com empatia, código com precisão. Tecnologia como extensão humana.", portfolio_title: "Trabalhos Selecionados", skills_title: "Especialidades", contact_title: "Colabore", contact_text: "Vamos criar algo extraordinário juntos.", copy_email: "Copiar e-mail" },
+        es: { left_label: "HUMANO · CREATIVIDAD", left_title: "Diseñador", left_desc: "UI/UX, storytelling visual, experiencia de marca.", right_label: "IA · INGENIERÍA", right_title: "<Ingeniero IA/>", right_desc: "Sistemas generativos, LLMs, código creativo.", explore: "Explorar trabajo →", view_projects: "Ver proyectos →", about_text: "Creative Technologist & Director de IA — uniendo diseño centrado en humanos con ingeniería de IA. 8+ años construyendo experiencias digitales premiadas.", philosophy: "Diseño con empatía, código con precisión. Tecnología como extensión humana.", portfolio_title: "Trabajos Seleccionados", skills_title: "Especialidades", contact_title: "Colaborar", contact_text: "Creemos algo extraordinario juntos.", copy_email: "Copiar correo" }
+    };
+    let currentLang = localStorage.getItem("lang") || "en";
+    function applyLanguage() {
+        const t = translations[currentLang];
+        document.querySelectorAll("[data-i18n]").forEach(el => {
+            const key = el.getAttribute("data-i18n");
+            if (t[key]) el.innerText = t[key];
+        });
+        document.getElementById("langToggle").innerText = currentLang.toUpperCase();
+        localStorage.setItem("lang", currentLang);
+    }
+    // Theme
+    let currentTheme = localStorage.getItem("theme") || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    function setTheme(theme) { if(theme === "dark") document.body.classList.add("dark"); else document.body.classList.remove("dark"); localStorage.setItem("theme", theme); }
+    setTheme(currentTheme);
+    document.getElementById("themeToggle").addEventListener("click", () => { currentTheme = document.body.classList.contains("dark") ? "light" : "dark"; setTheme(currentTheme); });
+    document.getElementById("langToggle").addEventListener("click", () => { const langs = ["en","pt","es"]; currentLang = langs[(langs.indexOf(currentLang)+1)%3]; applyLanguage(); });
+    applyLanguage();
+
+    // ======================= 3. SPA NAVEGAÇÃO =======================
+    let currentPage = 'home';
+    function navigateTo(pageId) {
+        if (currentPage === pageId) return;
+        const activePage = document.querySelector('.page.active');
+        const nextPage = document.getElementById(pageId);
+        if (!nextPage) return;
+        activePage.classList.remove('active');
+        nextPage.classList.add('active');
+        currentPage = pageId;
+        window.scrollTo(0, 0);
+        if (pageId === 'portfolio') renderPortfolio();
+        if (pageId === 'about') startCounters();
+    }
+
+    // ======================= 4. MODAIS E PROJETOS =======================
+    const modal = document.getElementById('globalModal');
+    const modalTitle = document.getElementById('modalTitle');
+    const modalDesc = document.getElementById('modalDesc');
+    function openModal(title, description) { modalTitle.innerText = title; modalDesc.innerText = description; modal.classList.add('active'); }
+    document.getElementById('closeModalBtn').addEventListener('click', () => modal.classList.remove('active'));
+    modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('active'); });
+
+    const projectsList = [
+        { name: "Neural Canvas AI", category: "AI + Design", desc: "Plataforma generativa de arte com OpenAI", modalDetail: "Projeto completo: interface de difusão estável, curadoria visual e sistema de prompts interativo." },
+        { name: "Fintech Dashboard", category: "Frontend", desc: "Real-time analytics com GSAP e React", modalDetail: "Dashboards interativos, microanimações e performance otimizada para dados em tempo real." },
+        { name: "Wellness Ecosystem", category: "UI/UX", desc: "App de bem-estar com design system", modalDetail: "Pesquisa com usuários, protótipos de alta fidelidade e testes A/B realizados com 200+ participantes." },
+        { name: "Voice Synthesis Studio", category: "AI", desc: "Clonagem de voz com IA generativa", modalDetail: "Modelo customizado de TTS, interface de estúdio criativo para produtores musicais." }
+    ];
+    function renderPortfolio() {
+        const grid = document.getElementById('portfolioGrid');
+        if (!grid) return;
+        grid.innerHTML = projectsList.map(proj => `
+            <div class="project-card">
+                <h3>${proj.name}</h3>
+                <p style="color: var(--accent-1); font-size:0.8rem;">${proj.category}</p>
+                <p style="margin: 0.8rem 0;">${proj.desc}</p>
+                <button class="btn-modal" data-project='${JSON.stringify(proj)}'>Ver case →</button>
+            </div>
+        `).join('');
+        document.querySelectorAll('#portfolioGrid .btn-modal').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const projData = JSON.parse(btn.getAttribute('data-project'));
+                openModal(`📁 ${projData.name}`, projData.modalDetail);
+            });
+        });
+    }
+
+    document.querySelectorAll('[data-modal]').forEach(el => {
+        el.addEventListener('click', () => {
+            const type = el.getAttribute('data-modal');
+            if (type === 'designer') openModal("🎨 Designer Universe", "Projetos de UI/UX, design systems, pesquisa de usuários e branding emocional.");
+            if (type === 'coder') openModal("⚡ AI Engineering", "Sistemas generativos, integração de LLMs, agentes autônomos e frontend de alto desempenho.");
+        });
+    });
+
+    function startCounters() { let proj=0, cli=0; const projSpan=document.getElementById("projectCount"), cliSpan=document.getElementById("clientCount"); if(!projSpan) return; const interval = setInterval(() => { if(proj<48) projSpan.innerText = ++proj; if(cli<32) cliSpan.innerText = ++cli; if(proj>=48 && cli>=32) clearInterval(interval); }, 35); }
+
+    document.querySelectorAll('[data-page]').forEach(link => {
+        link.addEventListener('click', (e) => { e.preventDefault(); navigateTo(link.getAttribute('data-page')); document.getElementById('navLinks')?.classList.remove('show'); });
+    });
+    document.getElementById('mobileMenu')?.addEventListener('click', () => { document.getElementById('navLinks').classList.toggle('show'); });
+    document.getElementById('copyEmailBtn')?.addEventListener('click', () => { navigator.clipboard.writeText('hello@marciomaker.com'); openModal("📋 Copiado!", "E-mail copiado para área de transferência."); });
+
+    // Lenis smooth scroll
+    const lenis = new Lenis({ duration: 1.1, smoothWheel: true });
+    function raf(time) { lenis.raf(time); requestAnimationFrame(raf); }
+    requestAnimationFrame(raf);
+    window.addEventListener('scroll', () => {
+        const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+        const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        const scrolled = (winScroll/height)*100;
+        document.getElementById('progressBar').style.width = scrolled+'%';
+        if(window.scrollY > 20) document.getElementById('navbar').classList.add('scrolled');
+        else document.getElementById('navbar').classList.remove('scrolled');
+    });
+
+    window.addEventListener('load', () => {
+        setTimeout(() => { const loader = document.getElementById('loader'); gsap.to(loader, { opacity: 0, duration: 0.6, onComplete: () => loader.style.display = 'none' }); }, 500);
+        renderPortfolio();
+        startCounters();
+        gsap.fromTo(".panel-content", { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.8, stagger: 0.2, delay: 0.3 });
+    });
+</script>
+</body>
+</html>
